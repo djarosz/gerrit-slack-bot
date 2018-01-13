@@ -16,7 +16,7 @@ class EventGroupToSlackMessageTransformer(
 ) : FlowableTransformer<EventGroup<*>, SlackMessage> {
 
     data class Config(
-            val username: String,
+            val username: String? = null,
             val iconUrl: String? = null,
             val gerritUrl: String? = null,
             val directMessagesEnabled: Boolean = false,
