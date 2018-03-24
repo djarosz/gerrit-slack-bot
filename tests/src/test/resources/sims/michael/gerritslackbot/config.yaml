@@ -71,6 +71,7 @@ Gerrit to Slack username mappings:
 # - project - regular expression to match on any part of project (match is case-insensitive) or "*" to match all - required
 # - branch - regular expression to match on any part of branch (match is case-insensitive) or "*" to match all - required
 # - subject - regular expression to match on any part of subject (match is case-insensitive) or "*" to match all - required
+# - triggeredBy - regular expression to match on any part of username who triggered this event (match is case-insensitive) - optional
 # - isVerificationOnly - boolean to match on comment added events that contain only verification approvals - optional
 #     missing or null means match both verifications and non-verifications
 #     Note that a verification approval that is accompanied by a code review approval is considered a "non-verification"

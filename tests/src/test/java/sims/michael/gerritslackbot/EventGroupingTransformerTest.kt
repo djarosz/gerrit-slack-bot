@@ -89,6 +89,22 @@ class EventGroupingTransformerTest {
     }
 
     @Test
+    fun can_match_events_based_on_event_author() {
+        val triggeredBy = "philipjfry"
+        val eventMatchingTransformer = EventGroupingTransformer(listOf(
+                ChangeMatcher("*", "*", "*", "channel", triggeredBy = triggeredBy)
+        ))
+        val groups = getEventGroupsWithTransformer(eventMatchingTransformer)
+        assertTrue(groups.size == 3)
+        assertTrue("triggeredBy should be equal to comment author",
+                groups.any { it.events.any { it is CommentAddedEvent && it.author.username == triggeredBy } })
+        assertTrue("triggeredBy author should be equal to uploader",
+                groups.any { it.events.any { it is PatchSetCreatedEvent && it.uploader.username == triggeredBy } })
+        assertTrue("triggeredBy should be equal to submitter",
+                groups.any { it.events.any { it is ChangeMergedEvent && it.submitter.username == triggeredBy } })
+    }
+
+    @Test
     fun change_kind_matches_for_patch_set_created_events_only() {
         val eventMatchingTransformer = EventGroupingTransformer(listOf(
                 ChangeMatcher("*", "*", "*", "channel", changeKind = "rework")

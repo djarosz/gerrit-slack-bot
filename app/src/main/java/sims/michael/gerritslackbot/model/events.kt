@@ -38,6 +38,7 @@ sealed class Event {
 
 sealed class ChangeEvent : Event() {
     abstract val change: ChangeAttribute
+    abstract val triggeredBy: AccountAttribute?
 }
 
 /** Sent when the assignee of a change has been modified. */
@@ -48,7 +49,10 @@ data class AssigneeChangedEvent(
         override val change: ChangeAttribute,
         override val type: String,
         override val eventCreatedOn: Long
-) : ChangeEvent()
+) : ChangeEvent() {
+    override val triggeredBy: AccountAttribute?
+        get() = this.changer
+}
 
 @JsonTypeName("hashtags-changed")
 data class HashtagsChangedEvent(
@@ -59,7 +63,10 @@ data class HashtagsChangedEvent(
         override val change: ChangeAttribute,
         override val type: String,
         override val eventCreatedOn: Long
-) : ChangeEvent()
+) : ChangeEvent() {
+    override val triggeredBy: AccountAttribute?
+        get() = this.editor
+}
 
 sealed class PatchSetEvent : ChangeEvent() {
     abstract val patchSet: PatchSetAttribute
@@ -73,7 +80,10 @@ data class ChangeAbandonedEvent(
         override val change: ChangeAttribute,
         override val type: String,
         override val eventCreatedOn: Long
-) : PatchSetEvent()
+) : PatchSetEvent() {
+    override val triggeredBy: AccountAttribute?
+        get() = this.abandoner
+}
 
 @JsonTypeName("change-merged")
 data class ChangeMergedEvent(
@@ -83,7 +93,10 @@ data class ChangeMergedEvent(
         override val change: ChangeAttribute,
         override val type: String,
         override val eventCreatedOn: Long
-) : PatchSetEvent()
+) : PatchSetEvent() {
+    override val triggeredBy: AccountAttribute?
+        get() = this.submitter
+}
 
 @JsonTypeName("change-restored")
 data class ChangeRestoredEvent(
@@ -93,7 +106,10 @@ data class ChangeRestoredEvent(
         override val change: ChangeAttribute,
         override val type: String,
         override val eventCreatedOn: Long
-) : PatchSetEvent()
+) : PatchSetEvent() {
+    override val triggeredBy: AccountAttribute?
+        get() = this.restorer
+}
 
 @JsonTypeName("comment-added")
 data class CommentAddedEvent(
@@ -104,7 +120,10 @@ data class CommentAddedEvent(
         override val change: ChangeAttribute,
         override val type: String,
         override val eventCreatedOn: Long
-) : PatchSetEvent()
+) : PatchSetEvent() {
+    override val triggeredBy: AccountAttribute?
+        get() = this.author
+}
 
 @JsonTypeName("draft-published")
 data class DraftPublishedEvent(
@@ -113,7 +132,10 @@ data class DraftPublishedEvent(
         override val change: ChangeAttribute,
         override val type: String,
         override val eventCreatedOn: Long
-) : PatchSetEvent()
+) : PatchSetEvent() {
+    override val triggeredBy: AccountAttribute?
+        get() = this.uploader
+}
 
 @JsonTypeName("patchset-created")
 data class PatchSetCreatedEvent(
@@ -123,7 +145,10 @@ data class PatchSetCreatedEvent(
         override val type: String,
         override val eventCreatedOn: Long
 
-) : PatchSetEvent()
+) : PatchSetEvent() {
+    override val triggeredBy: AccountAttribute?
+        get() = this.uploader
+}
 
 @JsonTypeName("reviewer-added")
 data class ReviewerAddedEvent(
@@ -132,7 +157,10 @@ data class ReviewerAddedEvent(
         override val change: ChangeAttribute,
         override val type: String,
         override val eventCreatedOn: Long
-) : PatchSetEvent()
+) : PatchSetEvent() {
+    override val triggeredBy: AccountAttribute?
+        get() = null // TODO verify
+}
 
 @JsonTypeName("reviewer-deleted")
 data class ReviewerDeletedEvent(
@@ -144,7 +172,10 @@ data class ReviewerDeletedEvent(
         override val change: ChangeAttribute,
         override val type: String,
         override val eventCreatedOn: Long
-) : PatchSetEvent()
+) : PatchSetEvent() {
+    override val triggeredBy: AccountAttribute?
+        get() = this.remover
+}
 
 @JsonTypeName("vote-deleted")
 data class VoteDeletedEvent(
@@ -156,7 +187,10 @@ data class VoteDeletedEvent(
         override val change: ChangeAttribute,
         override val type: String,
         override val eventCreatedOn: Long
-) : PatchSetEvent()
+) : PatchSetEvent() {
+    override val triggeredBy: AccountAttribute?
+        get() = this.remover
+}
 
 @JsonTypeName("topic-changed")
 data class TopicChangedEvent(
@@ -165,7 +199,10 @@ data class TopicChangedEvent(
         override val change: ChangeAttribute,
         override val type: String,
         override val eventCreatedOn: Long
-) : ChangeEvent()
+) : ChangeEvent() {
+    override val triggeredBy: AccountAttribute?
+        get() = this.changer
+}
 
 @JsonTypeName("dropped-output")
 data class DroppedOutputEvent(override val type: String, override val eventCreatedOn: Long) : Event()

@@ -6,18 +6,22 @@ data class ChangeMatcher(
         val subject: String,
         val channel: String?,
         private val isVerificationOnly: Boolean? = null,
-        private val changeKind: String? = null
+        private val changeKind: String? = null,
+        private val triggeredBy: String? = null
 ) {
 
     fun matches(event: ChangeEvent): Boolean {
         val projectMatches = event.change.project.safeMatchesWildcardOrRegex(project)
         val branchMatches = event.change.branch.safeMatchesWildcardOrRegex(branch)
         val subjectMatches = event.change.subject.safeMatchesWildcardOrRegex(subject)
+        val triggeredByMatches = event.triggeredBy?.username.safeMatchesWildcardOrRegex(triggeredBy ?: "*")
         val isVerificationOnlyMatches = isVerificationOnly == null || isVerificationOnly == event.isVerificationOnly
         val eventChangeKind = event.changeKindOrNull
         val changeKindMatches = changeKind == null || eventChangeKind == null
                 || changeKind.toLowerCase() == eventChangeKind.toLowerCase()
-        return projectMatches && branchMatches && subjectMatches && isVerificationOnlyMatches && changeKindMatches
+        return projectMatches && branchMatches && subjectMatches
+                && isVerificationOnlyMatches && changeKindMatches
+                && triggeredByMatches
     }
 
     private val ChangeEvent.isVerificationOnly: Boolean
