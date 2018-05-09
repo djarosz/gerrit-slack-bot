@@ -102,11 +102,11 @@ class EventGroupToSlackMessageTransformer(
                             },
                             title = "$author reviewed ${event.toSlackSummary()}",
                             text = mutableListOf<String>().apply {
-                                codeReviewVote?.let { add("  - Code-Review: *${codeReviewVote.voteToString()}*") }
-                                verificationVote?.let { add("  - Verified: *${verificationVote.verifyVoteToString()}*") }
+                                codeReviewVote?.let { add("- Code-Review: *${codeReviewVote.voteToString()}*") }
+                                verificationVote?.let { add("- Verified: *${verificationVote.verifyVoteToString()}*") }
 
                                 if (!event.toSlackShortComment().isNullOrBlank()) {
-                                    add("  - Commented: \"${event.toSlackShortComment()}\"")
+                                    add("- Commented: \"${event.toSlackShortComment()}\"")
                                 }
                             }.joinToString("\n"),
                             mrkdwn_in = listOf("text")
@@ -128,6 +128,7 @@ class EventGroupToSlackMessageTransformer(
                 text = heading,
                 attachments = listOf(Attachment(
                         fallback = "Summary of changes",
+                        color = "#37B6B8",
                         text = events.joinToString("\n") { event ->
                             event.toSlackSummary().let {
                                 if (event.submitter != event.change.owner) {
@@ -194,8 +195,7 @@ class EventGroupToSlackMessageTransformer(
     private fun String.escapeUrlParameter(): String? = URLEncoder.encode(this, "UTF-8")
     private fun PatchSetEvent.toSlackSummary(): String {
         val changeUrl = if (config.gerritUrl != null) change.gerritChangeUrl(config.gerritUrl) else change.url
-        return "<$changeUrl|${change.subject?.escapeHtmlForSlack()}" +
-                " (patch ${patchSet.number})>"
+        return "<$changeUrl|${change.subject?.escapeHtmlForSlack()} (patch ${patchSet.number})>"
     }
 
     private fun ChangeAttribute.gerritChangeUrl(gerritUrl: String) =
