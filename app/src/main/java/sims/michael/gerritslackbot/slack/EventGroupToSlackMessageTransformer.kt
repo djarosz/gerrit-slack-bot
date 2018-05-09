@@ -97,7 +97,7 @@ class EventGroupToSlackMessageTransformer(
                             color = when {
                                 codeReviewVote == -2 || verificationVote == -1 -> "danger"
                                 codeReviewVote == -1 -> "warning"
-                                codeReviewVote != null && verificationVote != null -> "good"
+                                codeReviewVote != 0 && verificationVote != 0 -> "good"
                                 else -> null
                             },
                             title = "$author reviewed ${event.toSlackSummary()}",
