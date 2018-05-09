@@ -89,22 +89,21 @@ class EventGroupToSlackMessageTransformer(
                         text = events.map { event ->
                             mutableListOf<String>().apply {
                                 val author = event.author.username.resolveSlackName(atMention = false)
-                                add("$author ...")
+                                add("$author reviewed ${event.toSlackSummary()} ...")
                                 val codeReview = event.approvals.orEmpty().find { it.type == "Code-Review" }
                                 val codeReviewVote = codeReview?.value?.toIntOrNull()
                                 if (codeReviewVote != null) {
-                                    add("... *${codeReviewVote.voteToString()}* ${event.toSlackSummary()}")
+                                    add("... *${codeReviewVote.voteToString()}*}")
                                 }
 
                                 val verification = event.approvals.orEmpty().find { it.type == "Verified" }
                                 val verificationVote = verification?.value?.toIntOrNull()
                                 if (verificationVote != null) {
-                                    add("... *${verificationVote.verifyVoteToString()}* ${event.toSlackSummary()}")
+                                    add("... *${verificationVote.verifyVoteToString()}*")
                                 }
 
                                 if (!event.toSlackShortComment().isNullOrBlank()) {
-                                    add("... commented on ${event.toSlackSummary()}: " +
-                                            "\"${event.toSlackShortComment()}\"")
+                                    add("... commented: \"${event.toSlackShortComment()}\"")
                                 }
                             }
                         }.joinIterables("").joinToString("\n"),
@@ -172,10 +171,16 @@ class EventGroupToSlackMessageTransformer(
         return result
     }
 
-    private fun Int.voteToString(): String = (if (this > 0) "+$this" else this.toString()) + "'d"
+    private fun Int.voteToString(): String = when {
+        this > 0 -> "+$this"
+        this == 0 -> "$this'd"
+        this == -1 -> "$this'd :warning:"
+        else -> "$this'd :no_entry:"
+    }
+
     private fun Int.verifyVoteToString(): String = when {
         this > 0 -> "Verified (+1)"
-        this < 0 -> "Failed to verify (-1)"
+        this < 0 -> "Failed to verify (-1) :fire:"
         else -> "Did not verify (0)"
     }
 
