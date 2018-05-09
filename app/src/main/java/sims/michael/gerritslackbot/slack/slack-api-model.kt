@@ -14,6 +14,7 @@ data class SlackMessage(
 
 data class Attachment(
         val fallback: String,
+        val title: String? = null,
         val text: String? = null,
         val pretext: String? = null,
         val color: String? = null,

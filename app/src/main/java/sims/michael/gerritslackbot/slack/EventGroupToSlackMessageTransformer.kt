@@ -84,31 +84,34 @@ class EventGroupToSlackMessageTransformer(
                 icon_url = config.iconUrl,
                 channel = channel,
                 text = heading,
-                attachments = listOf(Attachment(
-                        fallback = "Summary of comments",
-                        text = events.map { event ->
-                            mutableListOf<String>().apply {
-                                val author = event.author.username.resolveSlackName(atMention = false)
-                                add("$author reviewed ${event.toSlackSummary()} ...")
-                                val codeReview = event.approvals.orEmpty().find { it.type == "Code-Review" }
-                                val codeReviewVote = codeReview?.value?.toIntOrNull()
-                                if (codeReviewVote != null) {
-                                    add("... *${codeReviewVote.voteToString()}*}")
-                                }
+                attachments = events.map { event ->
+                    val author = event.author.username.resolveSlackName(atMention = true)
+                    val codeReview = event.approvals.orEmpty().find { it.type == "Code-Review" }
+                    val codeReviewVote = codeReview?.value?.toIntOrNull()
+                    val verification = event.approvals.orEmpty().find { it.type == "Verified" }
+                    val verificationVote = verification?.value?.toIntOrNull()
 
-                                val verification = event.approvals.orEmpty().find { it.type == "Verified" }
-                                val verificationVote = verification?.value?.toIntOrNull()
-                                if (verificationVote != null) {
-                                    add("... *${verificationVote.verifyVoteToString()}*")
-                                }
+                    Attachment(
+                            fallback = "${event.author.username.resolveSlackName(atMention = false)} " +
+                                    "reviewed ${event.toSlackSummary()} with ${codeReviewVote}/${verificationVote}",
+                            color = when {
+                                codeReviewVote == -2 || verificationVote == -1 -> "danger"
+                                codeReviewVote == -1 -> "warning"
+                                codeReviewVote != null && verificationVote != null -> "good"
+                                else -> null
+                            },
+                            title = "$author reviewed ${event.toSlackSummary()}",
+                            text = mutableListOf<String>().apply {
+                                codeReviewVote?.let { add("  - Code-Review: *${codeReviewVote.voteToString()}*") }
+                                verificationVote?.let { add("  - Verified: *${verificationVote.verifyVoteToString()}*") }
 
                                 if (!event.toSlackShortComment().isNullOrBlank()) {
-                                    add("... commented: \"${event.toSlackShortComment()}\"")
+                                    add("  - Commented: \"${event.toSlackShortComment()}\"")
                                 }
-                            }
-                        }.joinIterables("").joinToString("\n"),
-                        mrkdwn_in = listOf("text")
-                ))
+                            }.joinToString("\n"),
+                            mrkdwn_in = listOf("text")
+                    )
+                }
         )
     }
 
@@ -128,7 +131,7 @@ class EventGroupToSlackMessageTransformer(
                         text = events.joinToString("\n") { event ->
                             event.toSlackSummary().let {
                                 if (event.submitter != event.change.owner) {
-                                    "$it (submitted by ${event.submitter.username.resolveSlackName(atMention = false)})"
+                                    "$it (submitted by ${event.submitter.username.resolveSlackName(atMention = true)})"
                                 } else it
                             }
                         }
@@ -154,8 +157,7 @@ class EventGroupToSlackMessageTransformer(
 
     private fun String.resolveSlackName(atMention: Boolean = true) = slackNameResolver[this].let { slackName ->
         if (slackName != null) {
-            val formattedName = if (atMention) "<@$slackName>" else slackName
-            "$formattedName ($this)"
+            if (atMention) "<@$slackName>" else slackName
         } else {
             this
         }
@@ -173,15 +175,15 @@ class EventGroupToSlackMessageTransformer(
 
     private fun Int.voteToString(): String = when {
         this > 0 -> "+$this"
-        this == 0 -> "$this'd"
-        this == -1 -> "$this'd :warning:"
-        else -> "$this'd :no_entry:"
+        this == 0 -> "$this"
+        this == -1 -> "$this :warning:"
+        else -> "$this :no_entry:"
     }
 
     private fun Int.verifyVoteToString(): String = when {
-        this > 0 -> "Verified (+1)"
-        this < 0 -> "Failed to verify (-1) :fire:"
-        else -> "Did not verify (0)"
+        this > 0 -> "+$this"
+        this < 0 -> "$this :fire:"
+        else -> "$this"
     }
 
     private fun changeOrChanges(size: Int): String = if (size == 1) "change" else "changes"
